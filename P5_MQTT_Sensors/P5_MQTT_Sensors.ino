@@ -100,6 +100,7 @@ void loop() {
   sprintf(payload, "%s } }", payload); // cierra el mensaje
   Serial.println("Publicando temperatura en Ubidots cloud");
   client.publish(topic, payload);
+  delay(5000);  //  Delay entre publish y preparación del siguiente mensaje
   // Publica en el topic de humedad
   sprintf(topic, "%s%s", "/v1.6/devices/", DEVICE_LABEL);
   sprintf(payload, "%s", ""); // Cleans the payload
@@ -114,5 +115,5 @@ void loop() {
   Serial.println("Publicando humedad en Ubidots cloud");
   client.publish(topic, payload);
   client.loop();
-  delay(15000); // 15 segundos en milisegundos entre publicaciones en ubidots
+  delay(10000); // 15 segundos en milisegundos entre publicaciones en ubidots
 }
