@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "959696066613",
+    "project_id": "testubi2-b2abe",
+    "storage_bucket": "testubi2-b2abe.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:959696066613:android:5336038b6fa6773afdb97c",
+        "android_client_info": {
+          "package_name": "com.example.testubi2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "959696066613-634h6ims9vjllicpco9qmh1s77hqisub.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8q1Wljy_Z-xo_tCmOqM0rSLbk0gSCEDk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "959696066613-634h6ims9vjllicpco9qmh1s77hqisub.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
