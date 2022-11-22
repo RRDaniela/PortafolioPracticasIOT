@@ -1,0 +1,12 @@
+{
+  "name": "mqtt-server",
+  "main": "app.js",
+  "private": true,
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "aedes": "^0.35.3",
+    "aedes-persistence": "^9.1.2"
+  }
+}
