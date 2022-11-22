@@ -1,15 +1,54 @@
+
 time_t lastFoodPresenceDocTs = 0;
+bool lastIsFoodPresent = false;
+time_t lastFoodPresentChange = 0;
+
 time_t lastPercentageDocTs = 0;
+double lastFoodLeftMeasure = 0;
+time_t lastFoodLeftChange = 0;
 
 void checkSensors()
 {
-  if (Firebase.ready() && (now() - lastFoodPresenceDocTs) > SECS_PER_MIN * 10)
-  {
-    sendFoodPresenceDataToFirebase();
+  maybeSendFoodPresenceDoc();
+  maybeSendFoodPrecentageLeftDoc();
+}
+
+void maybeSendFoodPrecentageLeftDoc()
+{
+  bool shouldCreateFoodLeftDoc = false;
+  double currentPercentageLeft = getPercentageOfFoodLeft();
+  double percentageDiff = abs((double)(currentPercentageLeft - lastFoodLeftMeasure));
+  if (percentageDiff >= 5.00) {
+    if ((now() - lastFoodLeftChange) > 5) {
+      shouldCreateFoodLeftDoc = true;
+      lastFoodLeftChange = now();
+    }
+  } else {
+    lastFoodLeftChange = now();
   }
-  if (Firebase.ready() && ((now() - lastPercentageDocTs) > SECS_PER_MIN) * 1.5)
+  if (Firebase.ready() && (shouldCreateFoodLeftDoc || (now() - lastPercentageDocTs) > SECS_PER_MIN * 15 || lastPercentageDocTs == 0))
   {
-    sendAmountOfFoodLeftDataToFirebase();
+    lastFoodLeftMeasure = currentPercentageLeft;
+    sendAmountOfFoodLeftDataToFirebase(lastFoodLeftMeasure);
+  }
+}
+
+void maybeSendFoodPresenceDoc()
+{
+  bool shouldCreateFoodPresenceDoc = false;
+  bool isFoodPresent = hasFoodPresentSensor();
+  if (lastIsFoodPresent != isFoodPresent) {
+    if ((now() - lastFoodPresentChange) > 10) {
+      shouldCreateFoodPresenceDoc = true;
+      lastFoodPresentChange = now();
+    }
+  } else {
+    lastFoodPresentChange = now();
+  }
+  if (Firebase.ready() && (shouldCreateFoodPresenceDoc || (now() - lastFoodPresenceDocTs) > SECS_PER_MIN * 15 || lastFoodPresenceDocTs == 0))
+  {
+    lastIsFoodPresent = isFoodPresent;
+    sendFoodPresenceDataToFirebase();
   }
 }
 
@@ -19,18 +58,25 @@ void sendFoodPresenceDataToFirebase()
   FirebaseJson content;
   String collectionId = "foodPresent";
   int hasFoodPresent = hasFoodPresentSensor();
-  Serial.printf("Comida presente %s\n", hasFoodPresent != 0 ? "SI" : "NO");
+  Serial.printf("Comida presente %s\n", hasFoodPresent == 0 ? "SI" : "NO");
   // boolean
   content.set("fields/hasFoodPresent/booleanValue", !hasFoodPresent);
   // timestamp
   content.set("fields/timestamp/timestampValue", dateTime(RFC3339)); // RFC3339 UTC "Zulu" format
+
+  String doc_path = "projects/";
+  doc_path += FIREBASE_PROJECT_ID; // Firebase project id (found on settings)
+  doc_path += "/databases/(default)/documents/feeders/"; // coll_id and doc_id are your collection id and document id
+  doc_path += feederId; // coll_id and doc_id are your collection id and document id
+
+  // reference
+  content.set("fields/feeder/referenceValue", doc_path.c_str());
   sendFirebaseRequest(collectionId, content);
   lastFoodPresenceDocTs = now();
 }
 
-void sendAmountOfFoodLeftDataToFirebase()
+void sendAmountOfFoodLeftDataToFirebase(double percentageLeft)
 {
-  double percentageLeft = getPercentageOfFoodLeft();  
   // For the usage of FirebaseJson, see examples/FirebaseJson/BasicUsage/Create.ino
   FirebaseJson content;
   String collectionId = "foodLeft";
@@ -47,6 +93,7 @@ void sendAmountOfFoodLeftDataToFirebase()
 
   // timestamp
   content.set("fields/timestamp/timestampValue", dateTime(RFC3339)); // RFC3339 UTC "Zulu" format
+  Serial.print("Sending amount of foodleft: " + String(percentageLeft));
   sendFirebaseRequest(collectionId, content);
   lastPercentageDocTs = now();
 }

@@ -1,3 +1,4 @@
+#include <HTTPClient.h>
 #include <Firebase_ESP_Client.h>
 #include <ezTime.h>
 #include <addons/TokenHelper.h>
@@ -17,14 +18,14 @@
 
 // Sensors GPIOs
 //   Motor
-#define IN1  GPIO_NUM_13
-#define IN2  GPIO_NUM_14
-#define IN3  GPIO_NUM_27
-#define IN4  GPIO_NUM_26
+#define IN1 GPIO_NUM_13
+#define IN2 GPIO_NUM_14
+#define IN3 GPIO_NUM_27
+#define IN4 GPIO_NUM_26
 //   Ultrasonic sensor
 #define US_TRIGGER 23
 #define US_ECHO 22
-#define SOUND_SPEED 0.0343 //define sound speed in cm/uS
+#define SOUND_SPEED 0.0343 // define sound speed in cm/uS
 //   Infrared sensor
 #define SENS_INFR 21
 #define DETECTED_INFR LOW
@@ -50,11 +51,12 @@ static SemaphoreHandle_t feederMutex;
 void setup()
 {
   Serial.begin(115200);
-  while (!Serial);
+  while (!Serial)
+    ;
   firebaseMutex = xSemaphoreCreateMutex();
   feedTimesMutex = xSemaphoreCreateMutex();
   feederMutex = xSemaphoreCreateMutex();
-  maybeRequestUserDataFromBT(); 
+  maybeRequestUserDataFromBT();
   connectToWifi();
   initSensors();
   waitForSync(); // timezone sync
@@ -72,7 +74,6 @@ void setup()
   }
   Firebase.RTDB.setStreamCallback(&firebaseRTDBDataAndConn, onFeederRTDBChange, streamTimeoutCallback, 10024);
 }
-
 
 void loop()
 {
@@ -171,7 +172,7 @@ void onFeederRTDBChange(FirebaseStream data)
   Serial.println("StreamPath: " + data.streamPath());
   Serial.println("DataPath: " + data.dataPath());
   // The entire object changed or a new property was added (check which one)
-  if (data.dataPath() == "/" && data.dataType() == "json") 
+  if (data.dataPath() == "/" && data.dataType() == "json")
   {
     FirebaseJson json = data.jsonObject();
     FirebaseJsonData dataFromDB;
@@ -214,7 +215,7 @@ void onFeederRTDBChange(FirebaseStream data)
   else if (data.dataPath() == "/feedTimes" && data.dataType() == "string")
   {
     String feedTimes = data.stringData();
-    scheduleFeedTimes(feedTimes);  
+    scheduleFeedTimes(feedTimes);
   }
   else if (data.dataPath() == "/resetFeeder" && data.dataType() == "boolean")
   {
@@ -242,11 +243,10 @@ void feedAndRescheduleFeedInOneDay()
     }
   }
   feedNPortions(portionsToGive);
-	Serial.println("Next feed time: " + dateTime(newFeedTime) + " with " + portionsToGive + " portions");
-	// The event then sets a new event for the next time
-	setEvent(feedAndRescheduleFeedInOneDay, newFeedTime, UTC_TIME);
+  Serial.println("Next feed time: " + dateTime(newFeedTime) + " with " + portionsToGive + " portions");
+  // The event then sets a new event for the next time
+  setEvent(feedAndRescheduleFeedInOneDay, newFeedTime, UTC_TIME);
 }
-
 
 void checkEvents()
 {
